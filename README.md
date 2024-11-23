@@ -34,7 +34,7 @@
  ./scripts/init-CS.sh (инициализация конфига и шардов)
     ./scripts/init-R.sh (инициализация роутера)
 
-Затем выполняем curl http://localhost:8080/somedb/users и можно открывать приложение 
+Затем выполняем curl http://localhost:8080/somedb/users и можно открывать pymongo_api на localhost
 
 Для проверки данных:
 ./scripts/router-data.sh (1000)
