@@ -1,0 +1,342 @@
+name: sharding-repl-cash
+
+services:
+  configSrv01:
+    image: mongo:latest
+    container_name: configSrv01
+    restart: always
+    ports:
+     - "27019:27019"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.10
+    volumes:
+      - configSrv01-data:/data/db
+    command: --configsvr --replSet --configReplSet --bind_ip_all
+
+    # configSrv02:
+    # image: mongo:latest
+    # container_name: configSrv02
+    # ports:
+    #  - "27020:27020"
+    # networks:
+    #   app-network:
+    #     ipv4_address: 173.17.0.11
+    # volumes:
+    #   - configSrv02-data:/data/db
+    # command: --configsvr --replSet --configReplSet --bind_ip_all  
+       
+    # healthcheck:
+    #   test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+    #   interval: 5s
+    #   start_period: 10s //**
+
+  shard01a:
+    image: mongo:latest
+    container_name: shard01a
+    restart: always
+    ports:
+      - "27021:27021"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.9
+    volumes:
+      - shard01a-data:/data/db
+    command:
+      [
+        "--shardsvr", 
+        "--replSet",
+        "rs1", 
+        "--bind_ip_all",
+        "--port",
+        "27021"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+  
+  shard01b:
+    image: mongo:latest
+    container_name: shard01b
+    restart: always
+    ports:
+      - "27031:27031"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.19
+    volumes:
+      - shard01b-data:/data/db
+    command:
+      [
+        "--shardsvr", 
+        "--replSet",
+        "rs1", 
+        "--bind_ip_all",
+        "--port",
+        "27031"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard01c:
+    image: mongo:latest
+    container_name: shard01c
+    restart: always
+    ports:
+      - "27041:27041"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.29
+    volumes:
+      - shard01c-data:/data/db
+    command:
+      [
+        "--shardsvr", 
+        "--replSet",
+        "rs1", 
+        "--bind_ip_all",
+        "--port",
+        "27041"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+ 
+  shard02a:
+    image: mongo:latest
+    container_name: shard02a
+    restart: always
+    ports:
+      - "27022:27022"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.8
+    volumes:
+      - shard02a-data:/data/db
+    command:
+      [
+        "--shardsvr", 
+        "--replSet",
+        "rs2", 
+        "--bind_ip_all", 
+        "--port",
+        "27022"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard02b:
+    image: mongo:latest
+    container_name: shard02b
+    restart: always
+    ports:
+      - "27032:27032"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.18
+    volumes:
+      - shard02b-data:/data/db
+    command:
+      [
+        "--shardsvr", 
+        "--replSet",
+        "rs2", 
+        "--bind_ip_all", 
+        "--port",
+        "27032"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  shard02c:
+    image: mongo:latest
+    container_name: shard02c
+    restart: always
+    ports:
+      - "27042:27042"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.28
+    volumes:
+      - shard02c-data:/data/db
+    command:
+      [
+        "--shardsvr", 
+        "--replSet",
+        "rs2", 
+        "--bind_ip_all", 
+        "--port",
+        "27042"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+  
+  router:
+    image: mongo:latest
+    container_name: router
+    restart: always
+    ports:
+      - "27018:27018"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.7
+    command:
+      [
+        "mongos",
+        "--configdb", 
+        "--configReplSet/configSrv01:27019",
+        "--bind_ip_all",
+        "--port",
+        "27018"
+      ]
+    healthcheck:
+      test: [ "CMD", "mongo", "--eval", "db.adminCommand('ping')" ]
+      interval: 5s
+      start_period: 10s
+
+  redis01:
+    image: redis:latest
+    container_name: redis01
+    restart: always
+    ports:
+      - "6379"
+    volumes: 
+      - redis01_data:/data
+      #- ./redis/redis.conf:/redis/redis.conf
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.91
+    #command: ["redis-server", "/redis/redis.conf"]
+
+  redis02:
+    image: redis:latest
+    container_name: redis02
+    restart: always
+    ports:
+      - "6379"
+    volumes: 
+      - redis02_data:/data
+      - ./redis/redis.conf:/redis/redis.conf
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.92
+    command: ["redis-server", "/redis/redis.conf"]
+
+  
+  redis03:
+    image: redis:latest
+    container_name: redis03
+    restart: always
+    ports:
+      - "6379"
+    volumes: 
+      - redis03_data:/data
+      - ./redis/redis.conf:/redis/redis.conf
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.93
+    command: ["redis-server", "/redis/redis.conf"]
+
+  redis04:
+    image: redis:latest
+    container_name: redis04
+    restart: always
+    ports:
+      - "6379"
+    volumes: 
+      - redis04_data:/data
+      - ./redis/redis.conf:/redis/redis.conf
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.94
+    command: ["redis-server", "/redis/redis.conf"]
+
+  
+  redis05:
+    image: redis:latest
+    container_name: redis05
+    restart: always
+    ports:
+      - "6379"
+    volumes: 
+      - redis05_data:/data
+      - ./redis/redis.conf:/redis/redis.conf
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.95
+    command: ["redis-server", "/redis/redis.conf"]
+
+  redis06:
+    image: redis:latest
+    container_name: redis06
+    restart: always
+    ports:
+      - "6379"
+    volumes: 
+      - redis06_data:/data
+      - ./redis/redis.conf:/redis/redis.conf
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.96
+    command: ["redis-server", "/redis/redis.conf"]
+
+  pymongo_api:
+    container_name: pymongo_api
+    build: 
+      context: api_app
+      dockerfile: Dockerfile
+      platforms:
+        - "linux/amd64"
+    image: kazhem/pymongo_api:1.0.0
+    depends_on:
+      - router
+      - redis01
+    ports:
+      - 8080:8080
+    environment:
+      MONGODB_URL: "mongodb://router:27018"
+      MONGODB_DATABASE_NAME: "somedb"
+      REDIS_URL: "redis://redis01:6379"
+    networks:
+      app-network:
+        ipv4_address: 173.17.0.2
+
+
+networks:
+  app-network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 173.17.0.0/16
+
+volumes:
+  configSrv01-data:
+  # configSrv02-data:  
+  shard01a-data:
+  shard01b-data:
+  shard01c-data:
+  shard02a-data:
+  shard02b-data:
+  shard02c-data:
+  redis01_data: {}
+  redis02_data: {}
+  redis03_data: {}
+  redis04_data: {}
+  redis05_data: {}
+  redis06_data: {} 
+ 
+
+
+  
+

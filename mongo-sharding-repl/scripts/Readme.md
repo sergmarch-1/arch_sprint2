@@ -25,17 +25,3 @@
 ./scripts/router-data.sh (1000)
 ./scripts/confshard-data.sh (492, 492, 492 и 508, 508, 508)
     
-Задание 4. Кэширование
-
-в compose.yaml добавлены инстансы redis, обновлены настройки контейнера pymongo_api
-
-Для запуска, из sharding-repl-cash выполняем последовательно:
- docker compose up -d
- ./scripts/init-CS.sh (инициализация конфига и шардов)
-    ./scripts/init-R.sh (инициализация роутера)
-
-Затем выполняем curl http://localhost:8080/somedb/users и можно открывать приложение 
-
-Для проверки данных:
-./scripts/router-data.sh (1000)
-./scripts/shard-data.sh (492, 492, 492 и 508, 508, 508)
